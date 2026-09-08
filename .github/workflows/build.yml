@@ -38,11 +38,11 @@ jobs:
           path: |
             ~/.buildozer
             ~/.cache/pip
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-v3-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Build APK
         run: |
-          yes | buildozer android debug
+          buildozer android debug 2>&1 | tail -200
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
