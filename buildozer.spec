@@ -11,11 +11,10 @@ fullscreen = 0
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.api = 33
 android.minapi = 21
-android.sdk = 24
 android.ndk = 25b
-android.arch = arm64-v8a
-android.entrypoint = org.renpy.android.PythonActivity
-android.apptheme = @android:style/Theme.Holo.Light
+android.archs = arm64-v8a
+android.entrypoint = org.kivy.android.PythonActivity
+android.accept_sdk_license = True
 p4a.branch = master
 build.dir = .buildozer
 
