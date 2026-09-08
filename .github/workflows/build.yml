@@ -38,10 +38,21 @@ jobs:
           path: |
             ~/.buildozer
             ~/.cache/pip
-          key: buildozer-v3-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-v4-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Build APK
         run: |
+          export ANDROID_HOME=/home/runner/.buildozer/android/platform/android-sdk
+          mkdir -p $ANDROID_HOME
+          # 先运行一次让 buildozer 下载 SDK
+          buildozer android debug 2>&1 | head -50 || true
+          # 手动接受所有 license
+          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          elif [ -f "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+          fi
+          # 再次运行 buildozer
           yes | buildozer android debug
 
       - name: Upload APK artifact
