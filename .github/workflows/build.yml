@@ -25,20 +25,32 @@ jobs:
           sudo apt update
           sudo apt install -y git zip unzip autoconf libtool pkg-config \
             zlib1g-dev libncurses5-dev libncursesw5-dev \
-            cmake libffi-dev libssl-dev
+            cmake libffi-dev libssl-dev wget
 
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Pre-accept SDK licenses
+      - name: Setup Android SDK and accept licenses
         run: |
           export ANDROID_HOME=/home/runner/.buildozer/android/platform/android-sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          mkdir -p $ANDROID_HOME/tools/bin
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          # 创建旧路径符号链接，兼容 buildozer
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
+          # 接受所有 license
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          # 预写 license 文件
           mkdir -p $ANDROID_HOME/licenses
           echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
           echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
-          echo "Licenses pre-accepted"
+          echo "Android SDK setup complete"
 
       - name: Cache Buildozer
         uses: actions/cache@v4
@@ -46,7 +58,7 @@ jobs:
           path: |
             ~/.buildozer
             ~/.cache/pip
-          key: buildozer-v5-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-v6-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Build APK
         run: |
