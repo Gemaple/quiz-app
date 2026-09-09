@@ -41,16 +41,24 @@ jobs:
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip
           mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-          # 创建旧路径符号链接，兼容 buildozer
           ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
           ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
-          # 接受所有 license
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          # 预写 license 文件
           mkdir -p $ANDROID_HOME/licenses
           echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
           echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
           echo "Android SDK setup complete"
+
+      - name: Pre-download freetype (fix 502 error)
+        run: |
+          PACKAGE_DIR=/home/runner/.buildozer/android/platform/build-arm64-v8a/packages/freetype
+          mkdir -p $PACKAGE_DIR
+          cd $PACKAGE_DIR
+          # 尝试多个镜像源
+          wget -q --timeout=30 https://mirrors.tuna.tsinghua.edu.cn/gnu/freetype/freetype-2.14.1.tar.gz || \
+          wget -q --timeout=30 https://ftpmirror.gnu.org/freetype/freetype-2.14.1.tar.gz || \
+          wget -q --timeout=60 --tries=3 https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.gz
+          ls -la freetype-2.14.1.tar.gz
 
       - name: Cache Buildozer
         uses: actions/cache@v4
@@ -58,7 +66,7 @@ jobs:
           path: |
             ~/.buildozer
             ~/.cache/pip
-          key: buildozer-v6-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-v7-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Build APK
         run: |
